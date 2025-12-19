@@ -20,12 +20,12 @@ AI assistants like Claude Code make us incredibly productive, but there's a risk
 
 From GitHub:
 ```bash
-/plugin install github:your-username/gitgud
+/plugin install github:MissingPackage/gitgud
 ```
 
 From local folder:
 ```bash
-/plugin install /path/to/gitgud
+claude --plugin-dir /path/to/gitgud
 ```
 
 ## Commands
