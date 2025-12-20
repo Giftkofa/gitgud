@@ -78,7 +78,7 @@ const CATEGORIES = {
         ]
     },
     frontend: {
-        keywords: /component|react|vue|angular|svelte|nextjs|nuxt|tailwind|css|scss|sass|styled|emotion/i,
+        keywords: /component|react|vue|angular|svelte|nextjs|nuxt|tailwind|css|scss|sass|html|style|button|form|page/i,
         tasks: [
             "Write a reusable presentational component (button, input, card) that you could use in this feature.",
             "Implement a custom hook or composable to manage local state for this component.",
