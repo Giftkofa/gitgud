@@ -29,7 +29,7 @@ AI assistants like Claude Code make us incredibly productive, but there's a risk
 ### From local folder (for development)
 
 ```bash
-claude --plugin-dir /path/to/gitgud
+claude --debug --plugin-dir /path/to/gitgud
 ```
 
 ## Commands
@@ -115,6 +115,34 @@ This ensures your achievements and streaks persist even when updating the plugin
 2. **Take your time** - Quality practice beats rushing through tasks
 3. **Use hints wisely** - Ask Claude for conceptual help, but write the code yourself
 4. **Build a streak** - Consistency is key to maintaining skills
+
+## Current Limitations
+
+This is v1.0, built in a couple hours on a Friday night. It works, but has room for improvement. Most of these limitations can be overcome with a much higher token usage but this would make no-sense for this kind of plugins:
+
+- **Keyword matching is basic** - Categories are detected via simple regex patterns, not semantic understanding
+- **Tasks are generic** - They don't deeply analyze your specific code context, but are rather based on the conversation context.
+- **No difficulty progression** - Tasks don't automatically become more difficult but if you select the *adaptive* difficulty, Claude will assign them based on what it thinks is your skill level
+- **Limited task variety** - 3 tasks per category, could use more
+- **English only** - Tasks and achievements are only in English
+
+## Contributing
+
+This plugin was built to scratch my own itch - I wanted to keep my skills sharp while using AI. If you have ideas for improvements, I'd love your help!
+
+**Areas that need love:**
+- Better task categorization (maybe using embeddings?)
+- More diverse and specific tasks
+- Difficulty progression system
+- Localization support
+- More achievements and gamification features
+- Better integration with specific frameworks/languages
+
+Feel free to open issues, submit PRs, or fork and make your own version!
+
+## Author
+
+Built with ❤️ (and some AI assistance) by [MissingPackage](https://github.com/MissingPackage)
 
 ## License
 
