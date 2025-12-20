@@ -4,70 +4,65 @@
  */
 
 const fs = require('fs');
-const path = require('path');
-
-// Paths
-const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || path.dirname(__dirname);
-const DATA_DIR = path.join(PLUGIN_ROOT, 'data');
-
-// State files
-const COUNTER_FILE = path.join(DATA_DIR, '.request_counter');
-const PENDING_TASK_FILE = path.join(DATA_DIR, '.pending_task');
-const SKIPS_FILE = path.join(DATA_DIR, '.daily_skips');
-const STREAK_FILE = path.join(DATA_DIR, '.streak_data');
-const ACHIEVEMENTS_FILE = path.join(DATA_DIR, '.achievements');
-const STATS_FILE = path.join(DATA_DIR, '.stats');
-const HISTORY_FILE = path.join(DATA_DIR, 'task_history.jsonl');
-
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-}
+const {
+    USER_DATA_DIR,
+    COUNTER_FILE,
+    PENDING_TASK_FILE,
+    SKIPS_FILE,
+    STREAK_FILE,
+    ACHIEVEMENTS_FILE,
+    STATS_FILE,
+    HISTORY_FILE,
+    writeFile
+} = require('./paths');
 
 function showHelp() {
+    console.log('');
     console.log('GitGud - Reset Tool');
     console.log('');
-    console.log('Uso: /gg-reset [opzione]');
+    console.log('Usage: /gg-reset [option]');
     console.log('');
-    console.log('Opzioni:');
-    console.log('  counter    Resetta solo il contatore richieste');
-    console.log('  stats      Resetta le statistiche (mantiene achievements)');
-    console.log('  all        Resetta tutto (counter, stats, achievements, streak)');
-    console.log('  help       Mostra questo messaggio');
+    console.log('Options:');
+    console.log('  counter    Reset only the request counter');
+    console.log('  stats      Reset statistics (keeps achievements)');
+    console.log('  all        Reset everything (counter, stats, achievements, streak)');
+    console.log('  help       Show this message');
+    console.log('');
+    console.log(`Data location: ${USER_DATA_DIR}`);
     console.log('');
 }
 
 function resetCounter() {
-    fs.writeFileSync(COUNTER_FILE, '0');
+    writeFile(COUNTER_FILE, '0');
     if (fs.existsSync(PENDING_TASK_FILE)) {
         fs.unlinkSync(PENDING_TASK_FILE);
     }
-    console.log('✅ Contatore resettato a 0');
+    console.log('✅ Counter reset to 0');
 }
 
 function resetStats() {
-    fs.writeFileSync(STATS_FILE, JSON.stringify({ completed: 0, skipped: 0, total_assigned: 0 }));
-    fs.writeFileSync(SKIPS_FILE, '0');
-    console.log('✅ Statistiche resettate');
+    writeFile(STATS_FILE, JSON.stringify({ completed: 0, skipped: 0, total_assigned: 0 }));
+    writeFile(SKIPS_FILE, '0');
+    console.log('✅ Statistics reset');
 }
 
 function resetAll() {
     resetCounter();
     resetStats();
-    fs.writeFileSync(ACHIEVEMENTS_FILE, '[]');
-    console.log('✅ Achievements resettati');
+    writeFile(ACHIEVEMENTS_FILE, '[]');
+    console.log('✅ Achievements reset');
 
     if (fs.existsSync(STREAK_FILE)) {
         fs.unlinkSync(STREAK_FILE);
     }
-    console.log('✅ Streak resettato');
+    console.log('✅ Streak reset');
 
     if (fs.existsSync(HISTORY_FILE)) {
         fs.unlinkSync(HISTORY_FILE);
     }
-    console.log('✅ History cancellata');
+    console.log('✅ History cleared');
     console.log('');
-    console.log('🔄 Reset completo eseguito!');
+    console.log('🔄 Full reset completed!');
 }
 
 function main() {

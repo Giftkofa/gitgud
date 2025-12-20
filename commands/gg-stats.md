@@ -1,5 +1,6 @@
 ---
 description: Show GitGud statistics, achievements, and streak
+allowed-tools: Bash(node:*)
 ---
 
 # Statistics
@@ -10,4 +11,5 @@ Displays your complete GitGud dashboard including:
 - Unlocked achievements
 - Recent task history
 
-$EXEC: node ${CLAUDE_PLUGIN_ROOT}/scripts/stats.js
+Script output:
+!`node ${CLAUDE_PLUGIN_ROOT}/scripts/stats.js`

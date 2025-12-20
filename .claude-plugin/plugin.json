@@ -3,17 +3,20 @@
   "version": "1.0.0",
   "description": "Keep your coding skills sharp! Periodic manual coding challenges with gamification (streaks, achievements, skip system)",
   "author": {
-    "name": "Cristiano Mazzella"
+    "name": "Cristiano Mazzella",
+    "url": "https://github.com/MissingPackage"
   },
+  "homepage": "https://github.com/MissingPackage/gitgud",
+  "repository": "https://github.com/MissingPackage/gitgud",
   "license": "MIT",
   "keywords": [
     "learning",
     "practice",
     "skills",
     "gamification",
-    "hooks",
     "training",
     "challenges",
-    "gitgud"
+    "coding",
+    "exercises"
   ]
 }

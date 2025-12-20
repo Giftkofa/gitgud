@@ -3,39 +3,11 @@
  * Configuration management for GitGud
  */
 
-const fs = require('fs');
-const path = require('path');
-
-// Paths
-const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || path.dirname(__dirname);
-const CONFIG_FILE = path.join(PLUGIN_ROOT, 'config.json');
-
-// Default config
-const DEFAULT_CONFIG = {
-    frequency: 10,
-    daily_skips: 3,
-    difficulty: 'adaptive',
-    enabled: true
-};
-
-// Create config if it doesn't exist
-if (!fs.existsSync(CONFIG_FILE)) {
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(DEFAULT_CONFIG));
-}
-
-// Read config
-function readConfig() {
-    try {
-        return { ...DEFAULT_CONFIG, ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) };
-    } catch (e) {
-        return DEFAULT_CONFIG;
-    }
-}
-
-// Write config
-function writeConfig(config) {
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-}
+const {
+    USER_DATA_DIR,
+    readConfig,
+    writeConfig
+} = require('./paths');
 
 // Show current configuration
 function showConfig() {
@@ -49,9 +21,9 @@ function showConfig() {
 
     const settings = [
         ['frequency', 'Requests between tasks', String(config.frequency)],
-        ['daily_skips', 'Max jolly per day', String(config.daily_skips)],
+        ['daily_skips', 'Max skips per day', String(config.daily_skips)],
         ['difficulty', 'Task difficulty', config.difficulty],
-        ['enabled', 'Plugin active', String(config.enabled).toLowerCase()]
+        ['enabled', 'Plugin active', String(config.enabled)]
     ];
 
     settings.forEach(([key, desc, val]) => {
@@ -69,6 +41,8 @@ function showConfig() {
     console.log('║    /gg-config enabled false                                  ║');
     console.log('║                                                              ║');
     console.log('║  Valid difficulty: easy, medium, hard, adaptive              ║');
+    console.log('╠══════════════════════════════════════════════════════════════╣');
+    console.log(`║  Data location: ${USER_DATA_DIR.substring(0, 40).padEnd(40)}    ║`);
     console.log('╚══════════════════════════════════════════════════════════════╝');
     console.log('');
 }
@@ -83,7 +57,7 @@ function setConfig(key, value) {
         case 'daily_skips':
             const num = parseInt(value);
             if (isNaN(num) || num < 1) {
-                console.log(`❌ Errore: ${key} deve essere un numero positivo`);
+                console.log(`❌ Error: ${key} must be a positive number`);
                 process.exit(1);
             }
             config[key] = num;
@@ -92,7 +66,7 @@ function setConfig(key, value) {
         case 'difficulty':
             const validDifficulties = ['easy', 'medium', 'hard', 'adaptive'];
             if (!validDifficulties.includes(value)) {
-                console.log('❌ Errore: difficulty deve essere: easy, medium, hard, o adaptive');
+                console.log('❌ Error: difficulty must be: easy, medium, hard, or adaptive');
                 process.exit(1);
             }
             config[key] = value;
@@ -100,21 +74,21 @@ function setConfig(key, value) {
 
         case 'enabled':
             if (value !== 'true' && value !== 'false') {
-                console.log('❌ Errore: enabled deve essere: true o false');
+                console.log('❌ Error: enabled must be: true or false');
                 process.exit(1);
             }
             config[key] = value === 'true';
             break;
 
         default:
-            console.log(`❌ Errore: chiave sconosciuta '${key}'`);
+            console.log(`❌ Error: unknown setting '${key}'`);
             console.log('');
-            console.log('Chiavi valide: frequency, daily_skips, difficulty, enabled');
+            console.log('Valid settings: frequency, daily_skips, difficulty, enabled');
             process.exit(1);
     }
 
     writeConfig(config);
-    console.log(`✅ ${key} impostato a: ${config[key]}`);
+    console.log(`✅ ${key} set to: ${config[key]}`);
 }
 
 // Main
@@ -124,17 +98,17 @@ function main() {
     if (args.length === 0) {
         showConfig();
     } else if (args.length === 1) {
-        console.log('❌ Errore: specificare anche il valore');
+        console.log('❌ Error: please also specify a value');
         console.log('');
-        console.log('Uso: /gg-config <setting> <value>');
-        console.log(`Esempio: /gg-config ${args[0]} 10`);
+        console.log('Usage: /gg-config <setting> <value>');
+        console.log(`Example: /gg-config ${args[0]} 10`);
         process.exit(1);
     } else if (args.length === 2) {
         setConfig(args[0], args[1]);
     } else {
-        console.log('❌ Errore: troppi argomenti');
+        console.log('❌ Error: too many arguments');
         console.log('');
-        console.log('Uso: /gg-config <setting> <value>');
+        console.log('Usage: /gg-config <setting> <value>');
         process.exit(1);
     }
 }

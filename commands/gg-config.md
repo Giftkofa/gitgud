@@ -1,5 +1,7 @@
 ---
 description: View or change GitGud configuration
+argument-hint: [setting] [value]
+allowed-tools: Bash(node:*)
 ---
 
 # Configuration
@@ -22,4 +24,5 @@ View and modify GitGud settings.
 /gg-config enabled false      # Disable the plugin
 ```
 
-$EXEC: node ${CLAUDE_PLUGIN_ROOT}/scripts/config.js $ARGS
+Script output:
+!`node ${CLAUDE_PLUGIN_ROOT}/scripts/config.js $ARGUMENTS`

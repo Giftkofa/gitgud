@@ -1,11 +1,12 @@
 {
+  "description": "GitGud - Periodic coding challenges",
   "hooks": {
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/gitgud.js"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/gitgud.js\""
           }
         ]
       }

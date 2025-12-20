@@ -5,88 +5,44 @@
  */
 
 const fs = require('fs');
-const path = require('path');
+const {
+    COUNTER_FILE,
+    PENDING_TASK_FILE,
+    SKIPS_FILE,
+    STREAK_FILE,
+    ACHIEVEMENTS_FILE,
+    STATS_FILE,
+    HISTORY_FILE,
+    readFile,
+    readJsonFile,
+    writeFile,
+    appendFile,
+    readConfig,
+    getToday,
+    getYesterday
+} = require('./paths');
 
-// Paths
-const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || path.dirname(__dirname);
-const DATA_DIR = path.join(PLUGIN_ROOT, 'data');
-const CONFIG_FILE = path.join(PLUGIN_ROOT, 'config.json');
-
-// State files
-const COUNTER_FILE = path.join(DATA_DIR, '.request_counter');
-const PENDING_TASK_FILE = path.join(DATA_DIR, '.pending_task');
-const SKIPS_FILE = path.join(DATA_DIR, '.daily_skips');
-const STREAK_FILE = path.join(DATA_DIR, '.streak_data');
-const ACHIEVEMENTS_FILE = path.join(DATA_DIR, '.achievements');
-const STATS_FILE = path.join(DATA_DIR, '.stats');
-const HISTORY_FILE = path.join(DATA_DIR, 'task_history.jsonl');
-
-// Read config
-function readConfig() {
-    const defaults = { frequency: 10, daily_skips: 3 };
-    try {
-        if (fs.existsSync(CONFIG_FILE)) {
-            return { ...defaults, ...JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')) };
-        }
-    } catch (e) {}
-    return defaults;
-}
-
-// Read file safely
-function readFile(filePath, defaultValue) {
-    try {
-        if (fs.existsSync(filePath)) {
-            return fs.readFileSync(filePath, 'utf8').trim();
-        }
-    } catch (e) {}
-    return defaultValue;
-}
-
-// Read JSON file safely
-function readJsonFile(filePath, defaultValue) {
-    try {
-        if (fs.existsSync(filePath)) {
-            return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        }
-    } catch (e) {}
-    return defaultValue;
-}
-
-// Write file
-function writeFile(filePath, content) {
-    fs.writeFileSync(filePath, content);
-}
-
-// Get today's date
-function getToday() {
-    return new Date().toISOString().split('T')[0];
-}
-
-// Get yesterday's date
-function getYesterday() {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return d.toISOString().split('T')[0];
-}
-
-// Achievement definitions
+// Achievement definitions (English)
 const ACHIEVEMENT_NAMES = {
-    first_task: { emoji: '🎯', name: 'Primo Passo' },
-    five_tasks: { emoji: '✋', name: 'Mani in Pasta' },
-    ten_tasks: { emoji: '📚', name: 'Praticante' },
-    twentyfive_tasks: { emoji: '🔨', name: 'Artigiano' },
-    fifty_tasks: { emoji: '🎓', name: 'Maestro' },
-    hundred_tasks: { emoji: '🏆', name: 'Leggenda' },
-    streak_3: { emoji: '🔥', name: 'Tre di Fila' },
-    streak_7: { emoji: '📅', name: 'Settimana Perfetta' },
-    streak_14: { emoji: '💪', name: 'Due Settimane' },
-    streak_30: { emoji: '🥇', name: "Mese d'Oro" }
+    first_task: { emoji: '🎯', name: 'First Steps' },
+    five_tasks: { emoji: '✋', name: 'Getting Hands Dirty' },
+    ten_tasks: { emoji: '📚', name: 'Apprentice' },
+    twentyfive_tasks: { emoji: '🔨', name: 'Craftsman' },
+    fifty_tasks: { emoji: '🎓', name: 'Master' },
+    hundred_tasks: { emoji: '🏆', name: 'Legend' },
+    streak_3: { emoji: '🔥', name: 'Three in a Row' },
+    streak_7: { emoji: '📅', name: 'Perfect Week' },
+    streak_14: { emoji: '💪', name: 'Two Weeks Strong' },
+    streak_30: { emoji: '🥇', name: 'Golden Month' }
 };
 
 function main() {
     // Check if there's a pending task
     if (!fs.existsSync(PENDING_TASK_FILE)) {
-        console.log('ℹ️  Nessun task pendente da completare.');
+        console.log('ℹ️  No pending task to complete.');
+        console.log('');
+        console.log('Tasks are assigned automatically every few requests.');
+        console.log('Use /gg-stats to see when your next task will appear.');
         return;
     }
 
@@ -178,33 +134,33 @@ function main() {
     // ============================================
     console.log('');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('                    ✅ TASK COMPLETATO!                      ');
+    console.log('                    ✅ TASK COMPLETED!                       ');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('');
 
     // Show new achievements
     if (newAchievements.length > 0) {
-        console.log('🏅 NUOVO ACHIEVEMENT SBLOCCATO!');
+        console.log('🏅 NEW ACHIEVEMENT UNLOCKED!');
         newAchievements.forEach(a => console.log(`   ${a}`));
         console.log('');
     }
 
     // Streak
-    console.log(`🔥 Streak: ${currentStreak} giorni`);
+    console.log(`🔥 Streak: ${currentStreak} days`);
     if (currentStreak === bestStreak && currentStreak > 1) {
-        console.log('   ⭐ Nuovo record personale!');
+        console.log('   ⭐ New personal record!');
     } else {
-        console.log(`   📈 Record: ${bestStreak} giorni`);
+        console.log(`   📈 Best: ${bestStreak} days`);
     }
     console.log('');
 
     // Stats
-    console.log('📊 Statistiche:');
-    console.log(`   Task completati: ${completed}`);
-    console.log(`   Task saltati: ${skipped}`);
+    console.log('📊 Statistics:');
+    console.log(`   Tasks completed: ${completed}`);
+    console.log(`   Tasks skipped: ${skipped}`);
     if (total > 0) {
         const completionRate = Math.round((completed * 100) / total);
-        console.log(`   Tasso completamento: ${completionRate}%`);
+        console.log(`   Completion rate: ${completionRate}%`);
     }
     console.log('');
 
@@ -214,22 +170,22 @@ function main() {
     const currentSkips = parseInt(readFile(SKIPS_FILE, '0'));
     const remainingSkips = MAX_DAILY_SKIPS - currentSkips;
 
-    console.log(`📍 Prossimo task tra: ${nextTask} richieste`);
-    console.log(`🃏 Jolly rimanenti oggi: ${remainingSkips}/${MAX_DAILY_SKIPS}`);
+    console.log(`📍 Next task in: ${nextTask} requests`);
+    console.log(`🃏 Skips remaining today: ${remainingSkips}/${MAX_DAILY_SKIPS}`);
     console.log('');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('💪 Ottimo lavoro! Continua così!');
+    console.log('💪 Great job! Keep it up!');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
     // Remove pending task
     fs.unlinkSync(PENDING_TASK_FILE);
 
     // Log completion
-    fs.appendFileSync(HISTORY_FILE, JSON.stringify({
+    appendFile(HISTORY_FILE, JSON.stringify({
         timestamp: new Date().toISOString(),
         event: 'completed',
         streak: currentStreak
-    }) + '\n');
+    }));
 }
 
 main();
