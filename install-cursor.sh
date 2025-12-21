@@ -63,7 +63,7 @@ else
     if [ -d "$GITGUD_INSTALL_DIR" ]; then
         echo "Updating existing GitGud installation..."
         cd "$GITGUD_INSTALL_DIR"
-        git pull origin cursor || {
+        git pull origin main || {
             echo -e "${YELLOW}⚠️  Could not update. Continuing with existing version.${NC}"
         }
     else
