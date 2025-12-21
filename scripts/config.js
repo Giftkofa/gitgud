@@ -1,23 +1,94 @@
 #!/usr/bin/env node
 /**
- * Configuration management for GitGud
+ * Configuration management CLI for GitGud
  */
 
-const {
-    USER_DATA_DIR,
-    readConfig,
-    writeConfig
-} = require('./paths');
+const { USER_DATA_DIR } = require('./paths');
+const { getConfig, setConfig, getConfigSchema } = require('./core/config-manager');
+
+// ─────────────────────────────────────────────────────────────
+// Width-aware box rendering (handles emoji properly)
+// ─────────────────────────────────────────────────────────────
+const BOX_WIDTH = 64;  // inner width between ║ and ║
+
+/**
+ * Calculate visual width of a string (emoji = 2 columns)
+ */
+function visualWidth(str) {
+    let width = 0;
+    for (const ch of str) {
+        const code = ch.codePointAt(0);
+        // Common emoji / wide char ranges
+        if (
+            (code >= 0x1F300 && code <= 0x1FAFF) || // Misc symbols, emoticons, etc.
+            (code >= 0x2600 && code <= 0x27BF) ||   // Misc symbols
+            (code >= 0xFE00 && code <= 0xFE0F) ||   // Variation selectors (ignore)
+            (code >= 0x200D && code <= 0x200D)      // ZWJ (ignore)
+        ) {
+            if (code >= 0xFE00 && code <= 0xFE0F) continue; // variation selector
+            if (code === 0x200D) continue; // ZWJ
+            width += 2;
+        } else {
+            width += 1;
+        }
+    }
+    return width;
+}
+
+/**
+ * Pad (or truncate) a string to target visual width
+ */
+function padVisual(str, target) {
+    let w = visualWidth(str);
+    if (w >= target) {
+        // truncate
+        let out = '';
+        let acc = 0;
+        for (const ch of str) {
+            const cw = visualWidth(ch);
+            if (acc + cw > target - 1) break;
+            out += ch;
+            acc += cw;
+        }
+        return out + '…';
+    }
+    return str + ' '.repeat(target - w);
+}
+
+/**
+ * Print a box line with proper padding
+ */
+function line(content = '') {
+    const padded = padVisual(content, BOX_WIDTH);
+    console.log(`║${padded}║`);
+}
+
+function separator() {
+    console.log('╠' + '═'.repeat(BOX_WIDTH) + '╣');
+}
+
+function topBorder() {
+    console.log('╔' + '═'.repeat(BOX_WIDTH) + '╗');
+}
+
+function bottomBorder() {
+    console.log('╚' + '═'.repeat(BOX_WIDTH) + '╝');
+}
+
+function headerLine(text) {
+    const padded = padVisual(text, BOX_WIDTH);
+    console.log(`║${padded}║`);
+}
 
 // Show current configuration
 function showConfig() {
-    const config = readConfig();
+    const config = getConfig();
 
     console.log('');
-    console.log('╔══════════════════════════════════════════════════════════════╗');
-    console.log('║                    ⚙️  GITGUD CONFIG                          ║');
-    console.log('╠══════════════════════════════════════════════════════════════╣');
-    console.log('║                                                              ║');
+    topBorder();
+    headerLine('                    ⚙️  GITGUD CONFIG');
+    separator();
+    line();
 
     const settings = [
         ['frequency', 'Requests between tasks', String(config.frequency)],
@@ -27,68 +98,40 @@ function showConfig() {
     ];
 
     settings.forEach(([key, desc, val]) => {
-        console.log(`║  ${key.padEnd(14)} ${val.padEnd(12)} (${desc})`);
-        console.log('║                                                              ║');
+        line(`  ${key.padEnd(14)} ${val.padEnd(12)} (${desc})`);
+        line();
     });
 
-    console.log('╠══════════════════════════════════════════════════════════════╣');
-    console.log('║  Usage: /gg-config <setting> <value>                         ║');
-    console.log('║                                                              ║');
-    console.log('║  Examples:                                                   ║');
-    console.log('║    /gg-config frequency 15                                   ║');
-    console.log('║    /gg-config daily_skips 5                                  ║');
-    console.log('║    /gg-config difficulty hard                                ║');
-    console.log('║    /gg-config enabled false                                  ║');
-    console.log('║                                                              ║');
-    console.log('║  Valid difficulty: easy, medium, hard, adaptive              ║');
-    console.log('╠══════════════════════════════════════════════════════════════╣');
-    console.log(`║  Data location: ${USER_DATA_DIR.substring(0, 40).padEnd(40)}    ║`);
-    console.log('╚══════════════════════════════════════════════════════════════╝');
+    separator();
+    line('  Usage: /gg-config <setting> <value>');
+    line();
+    line('  Examples:');
+    line('    /gg-config frequency 15');
+    line('    /gg-config daily_skips 5');
+    line('    /gg-config difficulty hard');
+    line('    /gg-config enabled false');
+    line();
+    line('  Valid difficulty: easy, medium, hard, adaptive');
+    separator();
+    line(`  Data location: ${USER_DATA_DIR}`);
+    bottomBorder();
     console.log('');
 }
 
 // Set a configuration value
-function setConfig(key, value) {
-    const config = readConfig();
+function setConfigValue(key, value) {
+    const result = setConfig(key, value);
 
-    // Validate key and value
-    switch (key) {
-        case 'frequency':
-        case 'daily_skips':
-            const num = parseInt(value);
-            if (isNaN(num) || num < 1) {
-                console.log(`❌ Error: ${key} must be a positive number`);
-                process.exit(1);
-            }
-            config[key] = num;
-            break;
-
-        case 'difficulty':
-            const validDifficulties = ['easy', 'medium', 'hard', 'adaptive'];
-            if (!validDifficulties.includes(value)) {
-                console.log('❌ Error: difficulty must be: easy, medium, hard, or adaptive');
-                process.exit(1);
-            }
-            config[key] = value;
-            break;
-
-        case 'enabled':
-            if (value !== 'true' && value !== 'false') {
-                console.log('❌ Error: enabled must be: true or false');
-                process.exit(1);
-            }
-            config[key] = value === 'true';
-            break;
-
-        default:
-            console.log(`❌ Error: unknown setting '${key}'`);
+    if (!result.success) {
+        console.log(`❌ Error: ${result.error}`);
+        if (result.validKeys) {
             console.log('');
-            console.log('Valid settings: frequency, daily_skips, difficulty, enabled');
-            process.exit(1);
+            console.log(`Valid settings: ${result.validKeys.join(', ')}`);
+        }
+        process.exit(1);
     }
 
-    writeConfig(config);
-    console.log(`✅ ${key} set to: ${config[key]}`);
+    console.log(`✅ ${result.message}`);
 }
 
 // Main
@@ -104,7 +147,7 @@ function main() {
         console.log(`Example: /gg-config ${args[0]} 10`);
         process.exit(1);
     } else if (args.length === 2) {
-        setConfig(args[0], args[1]);
+        setConfigValue(args[0], args[1]);
     } else {
         console.log('❌ Error: too many arguments');
         console.log('');

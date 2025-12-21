@@ -9,32 +9,15 @@ const {
     COUNTER_FILE,
     PENDING_TASK_FILE,
     SKIPS_FILE,
-    STREAK_FILE,
-    ACHIEVEMENTS_FILE,
     STATS_FILE,
     HISTORY_FILE,
     readFile,
     readJsonFile,
     writeFile,
-    appendFile,
-    readConfig,
-    getToday,
-    getYesterday
+    appendFile
 } = require('./paths');
-
-// Achievement definitions (English)
-const ACHIEVEMENT_NAMES = {
-    first_task: { emoji: '🎯', name: 'First Steps' },
-    five_tasks: { emoji: '✋', name: 'Getting Hands Dirty' },
-    ten_tasks: { emoji: '📚', name: 'Apprentice' },
-    twentyfive_tasks: { emoji: '🔨', name: 'Craftsman' },
-    fifty_tasks: { emoji: '🎓', name: 'Master' },
-    hundred_tasks: { emoji: '🏆', name: 'Legend' },
-    streak_3: { emoji: '🔥', name: 'Three in a Row' },
-    streak_7: { emoji: '📅', name: 'Perfect Week' },
-    streak_14: { emoji: '💪', name: 'Two Weeks Strong' },
-    streak_30: { emoji: '🥇', name: 'Golden Month' }
-};
+const { getConfig } = require('./core/config-manager');
+const { updateStreak, checkAchievements, ACHIEVEMENT_DEFINITIONS } = require('./core/achievements');
 
 function main() {
     // Check if there's a pending task
@@ -46,46 +29,14 @@ function main() {
         return;
     }
 
-    const config = readConfig();
+    const config = getConfig();
     const TRIGGER_EVERY = config.frequency;
     const MAX_DAILY_SKIPS = config.daily_skips;
 
     // ============================================
     // UPDATE STREAK
     // ============================================
-    const today = getToday();
-    const yesterday = getYesterday();
-
-    let currentStreak = 0;
-    let lastCompletionDate = '';
-    let bestStreak = 0;
-
-    const streakData = readFile(STREAK_FILE, '');
-    if (streakData) {
-        const lines = streakData.split('\n');
-        currentStreak = parseInt(lines[0]) || 0;
-        lastCompletionDate = lines[1] || '';
-        bestStreak = parseInt(lines[2]) || 0;
-    }
-
-    // Calculate if streak continues
-    if (lastCompletionDate === today) {
-        // Already completed today, streak stays
-    } else if (lastCompletionDate === yesterday) {
-        currentStreak++;
-    } else if (!lastCompletionDate) {
-        currentStreak = 1;
-    } else {
-        currentStreak = 1; // Reset streak
-    }
-
-    // Update best streak
-    if (currentStreak > bestStreak) {
-        bestStreak = currentStreak;
-    }
-
-    // Save streak
-    writeFile(STREAK_FILE, `${currentStreak}\n${today}\n${bestStreak}`);
+    const streak = updateStreak();
 
     // ============================================
     // UPDATE STATS
@@ -101,33 +52,7 @@ function main() {
     // ============================================
     // CHECK ACHIEVEMENTS
     // ============================================
-    const achievements = readJsonFile(ACHIEVEMENTS_FILE, []);
-    const newAchievements = [];
-
-    function checkAchievement(id, condition) {
-        if (condition && !achievements.includes(id)) {
-            achievements.push(id);
-            const ach = ACHIEVEMENT_NAMES[id];
-            newAchievements.push(`${ach.emoji} ${ach.name}`);
-        }
-    }
-
-    // Task milestones
-    checkAchievement('first_task', completed >= 1);
-    checkAchievement('five_tasks', completed >= 5);
-    checkAchievement('ten_tasks', completed >= 10);
-    checkAchievement('twentyfive_tasks', completed >= 25);
-    checkAchievement('fifty_tasks', completed >= 50);
-    checkAchievement('hundred_tasks', completed >= 100);
-
-    // Streak achievements
-    checkAchievement('streak_3', currentStreak >= 3);
-    checkAchievement('streak_7', currentStreak >= 7);
-    checkAchievement('streak_14', currentStreak >= 14);
-    checkAchievement('streak_30', currentStreak >= 30);
-
-    // Save achievements
-    writeFile(ACHIEVEMENTS_FILE, JSON.stringify(achievements));
+    const achievementResult = checkAchievements(stats, streak);
 
     // ============================================
     // OUTPUT
@@ -139,18 +64,18 @@ function main() {
     console.log('');
 
     // Show new achievements
-    if (newAchievements.length > 0) {
+    if (achievementResult.new.length > 0) {
         console.log('🏅 NEW ACHIEVEMENT UNLOCKED!');
-        newAchievements.forEach(a => console.log(`   ${a}`));
+        achievementResult.new.forEach(a => console.log(`   ${a.emoji} ${a.name}`));
         console.log('');
     }
 
     // Streak
-    console.log(`🔥 Streak: ${currentStreak} days`);
-    if (currentStreak === bestStreak && currentStreak > 1) {
+    console.log(`🔥 Streak: ${streak.current} days`);
+    if (streak.isNewRecord) {
         console.log('   ⭐ New personal record!');
     } else {
-        console.log(`   📈 Best: ${bestStreak} days`);
+        console.log(`   📈 Best: ${streak.best} days`);
     }
     console.log('');
 
